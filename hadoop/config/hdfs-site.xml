@@ -1,0 +1,19 @@
+<configuration>
+    <property>
+        <name>dfs.replication</name>
+        <value>2</value>
+        <description>The default block replication for HDFS. This sets the number of replicas for each block of data stored in HDFS.</description>
+    </property>
+
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>file:///opt/hadoop/data/namenode</value>
+        <description>Specifies the directory where the NameNode stores its metadata. This is a local filesystem path.</description>
+    </property>
+
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>file:///opt/hadoop/data/datanode</value>
+        <description>Specifies the directory where DataNodes store their data blocks. This is a local filesystem path.</description>
+    </property>
+</configuration>

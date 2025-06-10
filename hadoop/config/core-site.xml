@@ -1,0 +1,7 @@
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://hadoop-master:9000</value>
+        <description>The default filesystem URI for Hadoop. This is the address of the NameNode.</description>
+    </property>
+</configuration>

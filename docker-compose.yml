@@ -1,0 +1,64 @@
+version: '2.4'
+
+services:
+  hadoop-master:
+    build: ./hadoop
+    hostname: hadoop-master
+    volumes:
+      - ./hadoop/start-namenode.sh:/start-namenode.sh
+      - hadoop_data_master:/opt/hadoop/data/namenode
+    ports:
+      - "9871:9870"  # HDFS Web UI
+      - "8089:8088"
+    mem_limit: 1g
+    command: ["/bin/bash", "/start-namenode.sh"]
+  
+  hadoop-slave1:
+    build: ./hadoop
+    hostname: hadoop-slave1
+    volumes:
+      - ./hadoop/start-datanode.sh:/start-datanode.sh
+      - hadoop_data_slave1:/opt/hadoop/data/datanode
+    mem_limit: 1g
+    command: ["/bin/bash", "/start-datanode.sh"]
+    
+
+  hadoop-slave2:
+    build: ./hadoop
+    hostname: hadoop-slave2
+    volumes:
+      - ./hadoop/start-datanode.sh:/start-datanode.sh
+      - hadoop_data_slave2:/opt/hadoop/data/datanode
+    mem_limit: 1g 
+    command: ["/bin/bash", "/start-datanode.sh"]
+    
+  spark-master:
+    build: ./spark
+    hostname: spark-master
+    command: ["master"]
+    volumes:
+      - ./spark-app:/opt/spark-app
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    mem_limit: 1g
+  spark-worker-1:
+    build: ./spark
+    hostname: spark-worker-1
+    command: ["worker"]
+    depends_on:
+      - spark-master
+    mem_limit: 1g
+
+  spark-worker-2:
+    build: ./spark
+    hostname: spark-worker-2
+    command: ["worker"]
+    depends_on:
+      - spark-master
+    mem_limit: 1g
+
+volumes:
+  hadoop_data_master:
+  hadoop_data_slave1:
+  hadoop_data_slave2:
