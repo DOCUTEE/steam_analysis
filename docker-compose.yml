@@ -57,6 +57,39 @@ services:
     depends_on:
       - spark-master
     mem_limit: 1g
+  
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: metastore
+      MYSQL_USER: hive
+      MYSQL_PASSWORD: hive
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  hive-metastore:
+    build: ./hive-metastore
+    hostname: hive-metastore
+    ports:
+      - "9083:9083"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./hive-metastore/conf/hive-site.xml:/opt/hive/conf/hive-site.xml
+      - ./hive-metastore/init.sh:/init.sh
+    command: ["/bin/bash", "/init.sh"]
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9083"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   hadoop_data_master:

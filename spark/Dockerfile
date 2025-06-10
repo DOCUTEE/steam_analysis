@@ -32,4 +32,6 @@ WORKDIR $SPARK_HOME
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
+COPY ./conf/spark-defaults.conf $SPARK_HOME/conf/spark-defaults.conf
+
 ENTRYPOINT ["/start.sh"]
