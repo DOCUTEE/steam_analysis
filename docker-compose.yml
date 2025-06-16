@@ -68,11 +68,12 @@ services:
   
   mysql:
     image: mysql:8
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: metastore
-      MYSQL_USER: hive
-      MYSQL_PASSWORD: hive
     ports:
       - "3307:3306"
     healthcheck:
@@ -80,6 +81,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    
 
   hive-metastore:
     build: ./hive-metastore
@@ -103,3 +105,4 @@ volumes:
   hadoop_data_master:
   hadoop_data_slave1:
   hadoop_data_slave2:
+  mysql-data:
