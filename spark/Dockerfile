@@ -29,9 +29,4 @@ RUN pip3 install pyspark==${SPARK_VERSION}
 # Set working directory
 WORKDIR $SPARK_HOME
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
 COPY ./conf/spark-defaults.conf $SPARK_HOME/conf/spark-defaults.conf
-
-ENTRYPOINT ["/start.sh"]

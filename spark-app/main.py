@@ -1,15 +1,18 @@
 from pyspark.sql import SparkSession
 
-# 1. Create Spark session
 spark = SparkSession.builder \
-    .appName("ReadOnlyFromHDFS") \
+    .appName("MongoToIceberg") \
+    .config("spark.mongodb.read.connection.uri", "mongodb://NamHy:NamHyCute@host.docker.internal:27017/steam_db?authSource=admin") \
+    .config("spark.mongodb.read.database", "steam_db") \
+    .config("spark.mongodb.read.collection", "steam_review") \
+    .config("spark.sql.catalog.my_catalog", "org.apache.iceberg.spark.SparkCatalog") \
+    .config("spark.sql.catalog.my_catalog.type", "hadoop") \
+    .config("spark.sql.catalog.my_catalog.warehouse", "hdfs://hadoop-master:9000/user/hive/warehouse") \
+    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
     .getOrCreate()
 
-# 2. Read CSV from HDFS
-df = spark.read.option("header", "true").csv("hdfs://hadoop-master:9000/data/input/sample.csv")
+# Đọc từ MongoDB
+df = spark.read.format("mongodb").load()
 
-# 3. Show a few rows to verify
-df.show(5)
-
-# 4. Done
-spark.stop()
+# Ghi vào bảng Iceberg trong Hadoop Catalog
+df.writeTo("my_catalog.testdb.my_table").createOrReplace()
