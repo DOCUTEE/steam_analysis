@@ -28,11 +28,11 @@
     <value>thrift://0.0.0.0:9083</value>
   </property>
 
-  <!-- Thư mục warehouse trong HDFS (không cần nếu chỉ dùng metastore) -->
+  <!-- Thư mục warehouse trong HDFS (không cần nếu chỉ dùng metastore)
   <property>
     <name>hive.metastore.warehouse.dir</name>
     <value>/user/hive/warehouse</value>
-  </property>
+  </property> -->
 
   <!-- Xác minh schema -->
   <property>
