@@ -12,5 +12,8 @@ fi
 # start Hadoop
 start-dfs.sh
 
+hdfs dfsadmin -safemode leave
+hdfs dfs -mkdir -p /lakehouse
+
 # Hold the container open
 tail -f /dev/null
