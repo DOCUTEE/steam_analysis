@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS steam_catalog.silver.steam_reviews (
     created_day DATE
 )
 USING iceberg
+Partitioned BY (created_day)
 LOCATION '${LAKEHOUSE_URL}/silver.db/steam_reviews'
 TBLPROPERTIES (
     'format-version'='2'

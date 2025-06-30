@@ -3,3 +3,5 @@ __pycache__/
 **/__pycache__/
 *.pyc
 .env
+dbt/target/
+dbt/logs/dbt.log

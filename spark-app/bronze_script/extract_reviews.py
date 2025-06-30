@@ -56,8 +56,8 @@ except Exception as e:
 try:
     df = spark.read \
     .format("mongodb") \
-    .option("database", "steam_db") \
-    .option("collection", "steam_review_sample") \
+    .option("database", "docuteDB") \
+    .option("collection", "reviews") \
     .load()
 except Exception as e:
     print("Connection failed:")
