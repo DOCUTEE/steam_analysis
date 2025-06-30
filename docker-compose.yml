@@ -36,6 +36,8 @@ services:
       - ./spark-app:/opt/spark-app
       - ./spark/start-master.sh:/start-master.sh
     command: ["/bin/bash", "/start-master.sh"]
+    env_file:
+      - .env
     ports:
       - "8080:8080"
       - "7077:7077"

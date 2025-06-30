@@ -3,15 +3,30 @@ from pyspark.sql.functions import from_unixtime, to_date
 import argparse
 from datetime import datetime
 import sys
+import os
+from sql_reader.sql_reader import read_sql_file
 
+try:
+    LAKEHOUSE_URL = os.getenv("LAKEHOUSE_URL")
+    HIVE_METASTORE_URL = os.getenv("HIVE_METASTORE_URL")
+    STEAM_REVIEWS_MONGO_URI = os.getenv("STEAM_REVIEWS_MONGO_URI")
 
+    if not LAKEHOUSE_URL or not HIVE_METASTORE_URL or not STEAM_REVIEWS_MONGO_URI:
+        raise ValueError("Environment variables LAKEHOUSE_URL, HIVE_METASTORE_URL, and STEAM_REVIEWS_MONGO_URI must be set.")
+except ValueError as e:
+    print(f"Error: {e}")
+    sys.exit(1)
 
 
 # Parse extraction day
-parser = argparse.ArgumentParser()
-parser.add_argument("--day", required=True, help="Extraction Date in format YYYY-MM-DD")
-args = parser.parse_args()
-extraction_day = args.day
+try:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--day", required=True, help="Extraction Date in format YYYY-MM-DD")
+    args = parser.parse_args()
+    extraction_day = args.day
+except argparse.ArgumentError as e:
+    print(f"Day argument parsing error: {e}")
+    sys.exit(1)
 
 # Validate date format
 try:
@@ -20,18 +35,22 @@ except ValueError:
     print(f"Invalid date format: '{extraction_day}'. Expected format: YYYY-MM-DD.")
     sys.exit(1)    
 
-spark = SparkSession.builder \
-    .appName("SteamReviewByDay") \
-    .config("spark.mongodb.read.connection.uri", "mongodb://NamHy:NamHyCute@host.docker.internal:27017/steam_db?authSource=admin&tls=false") \
-    .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
-    .config("spark.sql.catalog.steam_catalog", "org.apache.iceberg.spark.SparkCatalog") \
-    .config("spark.sql.catalog.steam_catalog.type", "hive") \
-    .config("spark.sql.catalog.steam_catalog.uri", "thrift://hive-metastore:9083") \
-    .config("spark.sql.catalog.steam_catalog.warehouse", "hdfs://hadoop-master:9000/lakehouse") \
-    .getOrCreate()
+try:
+    spark = SparkSession.builder \
+        .appName("SteamReviewByDay") \
+        .config("spark.mongodb.read.connection.uri", STEAM_REVIEWS_MONGO_URI) \
+        .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
+        .config("spark.sql.catalog.steam_catalog", "org.apache.iceberg.spark.SparkCatalog") \
+        .config("spark.sql.catalog.steam_catalog.type", "hive") \
+        .config("spark.sql.catalog.steam_catalog.uri", HIVE_METASTORE_URL) \
+        .config("spark.sql.catalog.steam_catalog.warehouse", LAKEHOUSE_URL) \
+        .getOrCreate()
 
-spark.sparkContext.setLogLevel("WARN")
-
+    spark.sparkContext.setLogLevel("WARN")
+except Exception as e:
+    print("Failed to create Spark session:")
+    print(e)
+    sys.exit(1)
 
 # Try reading a sample from MongoDB
 try:
@@ -48,93 +67,63 @@ else:
     print("Connection successful.")
 
 
+try:
+    df = df.withColumn("created_day", to_date(from_unixtime("timestamp_created")))
+except Exception as e:
+    print("Error processing DataFrame:")
+    print(e)
+    sys.exit(1)
 
-df = df.withColumn("created_day", to_date(from_unixtime("timestamp_created")))
+try:
+    df = df.withColumn("created_day", to_date(df["created_day"]))
+    df.createOrReplaceTempView("reviews")
+except Exception as e:
+    print("Error creating temporary reviews view:")
+    print(e)
+    sys.exit(1)
 
-df.createOrReplaceTempView("reviews")
-
-steam_reviews = spark.sql(
-    f'''
-    SELECT 
-        recommendationid,
-        appid,
-        game,
-        author_steamid,
-        author_num_games_owned,
-        author_num_reviews,
-        author_playtime_forever,
-        author_playtime_last_two_weeks,
-        author_playtime_at_review,
-        author_last_played,
-        language,
-        review,
-        timestamp_created,
-        timestamp_updated,
-        voted_up,
-        votes_up,
-        votes_funny,
-        weighted_vote_score,
-        comment_count,
-        steam_purchase,
-        received_for_free,
-        written_during_early_access,
-        hidden_in_steam_china,
-        steam_china_location,
-        created_day
-    FROM reviews
-    WHERE DATE(created_day) = DATE('{extraction_day}')
-    '''
+extract_reviews_sql = read_sql_file(
+    '/opt/spark-app/bronze_script/sql_extract_load/reviews/extract_reviews.sql',
+    extraction_day=extraction_day.strftime("%Y-%m-%d")
 )
 
-steam_reviews.createOrReplaceTempView("steam_reviews")
-
-spark.sql("CREATE DATABASE IF NOT EXISTS steam_catalog.bronze")
-
-spark.sql(
-    """
-    CREATE TABLE IF NOT EXISTS steam_catalog.bronze.steam_reviews (
-        recommendationid INT,
-        appid INT,
-        game STRING,
-        author_steamid LONG,
-        author_num_games_owned INT,
-        author_num_reviews INT,
-        author_playtime_forever INT,
-        author_playtime_last_two_weeks INT,
-        author_playtime_at_review INT,
-        author_last_played INT,
-        language STRING,
-        review STRING,
-        timestamp_created INT,
-        timestamp_updated INT,
-        voted_up INT,
-        votes_up INT,
-        votes_funny INT,
-        weighted_vote_score DOUBLE,
-        comment_count INT,
-        steam_purchase INT,
-        received_for_free INT,
-        written_during_early_access INT,
-        hidden_in_steam_china INT,
-        steam_china_location STRING,
-        created_day DATE
+# SQL to create the bronze database
+create_db_bronze_sql = read_sql_file(
+    '/opt/spark-app/bronze_script/sql_extract_load/bronze_database/create_db_bronze.sql'
     )
-    USING iceberg
-    PARTITIONED BY (created_day)
-    LOCATION 'hdfs://hadoop-master:9000/lakehouse/bronze.db/steam_reviews'
-    TBLPROPERTIES (
-        'format-version' = '2'
-    );
-    """
+print("Executing SQL:\n", create_db_bronze_sql)
+
+try:
+    spark.sql(create_db_bronze_sql)
+except Exception as e:
+    print(f"Error creating bronze database: {e}")
+    sys.exit(1)
+
+# Create the steam_reviews table in the bronze database
+create_table_bronze_reviews_sql = read_sql_file(
+    '/opt/spark-app/bronze_script/sql_extract_load/reviews/create_table_bronze_reviews.sql',
+    LAKEHOUSE_URL=LAKEHOUSE_URL
 )
+print(create_table_bronze_reviews_sql)
 
-spark.sql("""
-    MERGE INTO steam_catalog.bronze.steam_reviews AS target
-    USING steam_reviews AS source
-    ON target.recommendationid = source.recommendationid
-    WHEN MATCHED THEN
-      UPDATE SET *
-    WHEN NOT MATCHED THEN
-      INSERT *
-""")
+try:
+    spark.sql(create_table_bronze_reviews_sql)
+except Exception as e:
+    print("Error creating steam_reviews table in bronze database:")
+    print(e)
+    sys.exit(1)
 
+extract_reviews_sql = read_sql_file(
+    '/opt/spark-app/bronze_script/sql_extract_load/reviews/extract_reviews.sql',
+    extraction_day=extraction_day
+)
+print(extract_reviews_sql)
+try:
+    spark.sql(extract_reviews_sql)
+except Exception as e:
+    print("Error merging data into steam_reviews table:")
+    print(e)
+    sys.exit(1)
+
+spark.stop()
+print("Data extraction and loading completed successfully.")
