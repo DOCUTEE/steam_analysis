@@ -101,6 +101,17 @@ services:
       timeout: 5s
       retries: 5
 
+  dbt:
+    build: ./dbt
+    hostname: dbt
+    volumes:
+      - ./dbt:/dbt            # Nơi chứa project dbt của bạn trên host
+    depends_on:
+      - spark-master
+      - hive-metastore
+      - mysql
+    entrypoint: ["sleep", "infinity"]  # Khi chạy sẽ giữ container chạy
+
 volumes:
   hadoop_data_master:
   hadoop_data_slave1:

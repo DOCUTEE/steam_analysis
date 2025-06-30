@@ -1,0 +1,1 @@
+SELECT * FROM default_silver.source_table;

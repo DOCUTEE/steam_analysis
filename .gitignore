@@ -1,1 +1,3 @@
 env/
+dbt/target/
+dbt/logs/dbt.log

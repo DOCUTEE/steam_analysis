@@ -31,7 +31,7 @@
   <!-- Thư mục warehouse trong HDFS (không cần nếu chỉ dùng metastore) -->
   <property>
     <name>hive.metastore.warehouse.dir</name>
-    <value>/user/hive/warehouse</value>
+    <value>/</value>
   </property>
 
   <!-- Xác minh schema -->

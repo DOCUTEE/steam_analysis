@@ -1,0 +1,1 @@
+DROP TABLE default.source_table;

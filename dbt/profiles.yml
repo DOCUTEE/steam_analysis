@@ -1,0 +1,12 @@
+default:
+  outputs:
+    dev:
+      host: spark-master
+      method: thrift
+      port: 10000
+      schema: default
+      threads: 1
+      type: spark
+      dbname: default
+      hive_catalog: spark_catalog
+  target: dev
