@@ -27,13 +27,7 @@
     <name>hive.metastore.uris</name>
     <value>thrift://0.0.0.0:9083</value>
   </property>
-
-  <!-- Thư mục warehouse trong HDFS (không cần nếu chỉ dùng metastore) -->
-  <property>
-    <name>hive.metastore.warehouse.dir</name>
-    <value>/lakehouse</value>
-  </property> 
-
+  
   <!-- Xác minh schema -->
   <property>
     <name>hive.metastore.schema.verification</name>

@@ -7,7 +7,7 @@ ENV PATH=$PATH:$HIVE_HOME/bin
 
 RUN apt-get update
 
-RUN apt-get install -y wget curl netcat procps
+RUN apt-get install -y wget 
 
 RUN wget https://archive.apache.org/dist/hive/hive-${HIVE_VERSION}/apache-hive-${HIVE_VERSION}-bin.tar.gz && \
     tar -xzf apache-hive-${HIVE_VERSION}-bin.tar.gz && \
