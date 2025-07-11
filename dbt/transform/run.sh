@@ -1,0 +1,1 @@
+dbt run --select dim_time --vars '{"batch_start": "2010-01-01 00:00:00"}'

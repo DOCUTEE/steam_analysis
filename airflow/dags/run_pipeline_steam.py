@@ -16,23 +16,30 @@ with DAG(
     tags=['docker', 'steam', 'spark'],
 ) as dag:
 
-    today = date.today().strftime("%Y-%m-%d")
-    
+    # today = date.today().strftime("%Y-%m-%d")
+    start_day = '2010-10-15'
+    end_day = '2010-10-15' 
+    today = '2010-12-01'
     run_extract_review = BashOperator(
         task_id='run_extract_review',
-        bash_command=f'docker exec spark_steam-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_review.sh {today} '
+        bash_command=f'docker exec steam_analysis-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_review.sh {today} '
     )
     run_extract_game = BashOperator(
         task_id='run_extract_game',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_game.sh '
+        bash_command='docker exec steam_analysis-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_game.sh '
     )
     run_clean_review = BashOperator(
         task_id='run_clean_review',
-        bash_command=f'docker exec spark_steam-spark-master-1 bash /opt/spark-app/silver_script/run_clean_reviews.sh {today} '
+        bash_command=f'docker exec steam_analysis-spark-master-1 bash /opt/spark-app/silver_script/run_clean_reviews.sh {today} '
     )
     run_clean_game = BashOperator(
         task_id='run_clean_game',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/silver_script/run_clean_games.sh '
+        bash_command='docker exec steam_analysis-spark-master-1 bash /opt/spark-app/silver_script/run_clean_games.sh '
+    )
+    
+    test_wget = BashOperator( 
+        task_id='test_wget',
+        bash_command='docker exec steam_analysis-spark-master-1 wget https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.0.0/delta-spark_2.12-3.0.0.jar '
     )
 
     run_extract_review >> run_clean_review
