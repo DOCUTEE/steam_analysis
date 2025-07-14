@@ -4,7 +4,7 @@
 
 WITH exploded AS (
     SELECT explode(publishers) AS publisher
-    FROM silver.games
+    FROM {{ source('silver', 'games') }}
 ),
 deduplicated AS (
     SELECT DISTINCT publisher

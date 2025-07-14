@@ -3,10 +3,10 @@
 ) }}
 
 WITH exploded AS (
-    SELECT 
+    SELECT
         explode(developers) AS developer,
         appid AS game_key
-    FROM silver.games
+    FROM {{ source('silver', 'games') }}
 )
 
 SELECT DISTINCT p.developer_key, g.game_key

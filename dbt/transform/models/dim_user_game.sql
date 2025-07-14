@@ -1,19 +1,20 @@
-{{ config( 
-    unique_key=['user_key', 'game_key']
+{{ config(
+    unique_key=['timestamp', 'user_key', 'game_key']
 )}}
 
-WITH 
-joined AS ( 
-    SELECT * FROM 
-    silver.steam_reviews AS reviews 
+WITH
+joined AS (
+    SELECT * FROM
+    silver.steam_reviews AS reviews
     JOIN
     {{ ref('dim_user') }} AS user
     ON reviews.author_steamid = user.user_key
-    JOIN 
+    JOIN
     {{ ref('dim_game') }} AS game
     ON reviews.appid = game.game_key
 )
-SELECT 
+SELECT
+    unix_timestamp(joined.created_day) AS timestamp,
     user_key,
     game_key,
     author_playtime_forever AS user_playtime_forever,

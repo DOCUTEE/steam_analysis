@@ -6,4 +6,6 @@ spark-sql \
   --conf spark.sql.catalog.spark_catalog.uri=thrift://hive-metastore:9083 \
   --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
   --conf spark.sql.warehouse.dir=$LAKEHOUSE_URL \
-
+  --executor-memory 1g \
+  --executor-cores 2 \
+  --total-executor-cores 12 \

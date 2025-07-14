@@ -4,7 +4,7 @@
 
 WITH exploded AS (
     SELECT explode(genres) AS genre
-    FROM silver.games
+    FROM {{ source('silver', 'games') }}
 ),
 deduplicated AS (
     SELECT DISTINCT genre
