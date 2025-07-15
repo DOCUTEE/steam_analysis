@@ -9,6 +9,6 @@
   --conf spark.sql.warehouse.dir=$LAKEHOUSE_URL \
   --conf spark.sql.thriftServer.port=10000 \
   --executor-memory 2g \
-  --executor-cores 16 \
-  --total-executor-cores 16 \
+  --executor-cores 12 \
+  --total-executor-cores 12 \
   /opt/spark/jars/spark-hive-thriftserver_2.12-3.4.0.jar \
