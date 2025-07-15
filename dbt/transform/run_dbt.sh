@@ -12,9 +12,11 @@ FULL_REFRESH=${2:-0}
 # Ghép thêm giờ mặc định vào ngày
 START_DATE="$1 00:00:00"
 
+cd /dbt/transform || exit 1
+
 # Xây dựng câu lệnh dbt
 if [ "$FULL_REFRESH" -eq 1 ]; then
-  dbt run --full-refresh --vars "{\"batch_start\": \"$START_DATE\"}"
+  dbt run --full-refresh  --vars  "{\"batch_start\": \"$START_DATE\"}"
 else
-  dbt run --vars "{\"batch_start\": \"$START_DATE\"}"
+  dbt run  --vars  "{\"batch_start\": \"$START_DATE\"}"
 fi

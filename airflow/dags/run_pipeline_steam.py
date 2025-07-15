@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.operators.empty import EmptyOperator
 from datetime import datetime, date
 
 default_args = {
@@ -20,6 +21,18 @@ with DAG(
     start_day = '2010-10-15'
     end_day = '2010-10-15'
     today = '2010-10-15'
+
+    start_extract = EmptyOperator(task_id='start_extract')
+    done_extract = EmptyOperator(task_id='done_extract')
+    start_transform = EmptyOperator(task_id='start_transform')
+    done_transform = EmptyOperator(task_id='done_transform')
+
+
+    prep_iceberg = BashOperator(
+        task_id='prep_iceberg',
+        bash_command='docker exec steam_analysis-spark-master-1 bash /opt/spark-app/gold_script/prep_iceberg.sh '
+    )
+
     run_extract_review = BashOperator(
         task_id='run_extract_review',
         bash_command=f'docker exec steam_analysis-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_review.sh {today} '
@@ -37,10 +50,26 @@ with DAG(
         bash_command='docker exec steam_analysis-spark-master-1 bash /opt/spark-app/silver_script/run_clean_games.sh '
     )
 
-    test_wget = BashOperator(
-        task_id='test_wget',
-        bash_command='docker exec steam_analysis-spark-master-1 wget https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.0.0/delta-spark_2.12-3.0.0.jar '
+    run_dbt_modelling = BashOperator(
+        task_id='run_dbt_modelling',
+        bash_command=f'docker exec steam_analysis-dbt-1 bash /dbt/transform/run_dbt.sh {today} '
     )
 
-    run_extract_review >> run_clean_review
-    run_extract_game >> run_clean_game
+    run_thrift = BashOperator(
+        task_id='run_thrift',
+        bash_command='docker exec steam_analysis-spark-master-1 bash /opt/spark-app/gold_script/run_thrift.sh '
+    )
+
+    wait_thrift = BashOperator(
+        task_id='wait_thrift',
+        bash_command='docker exec steam_analysis-spark-master-1 bash -c "until nc -z localhost 10000; do sleep 2; done"'
+    )
+
+    start_modelling = EmptyOperator(
+        task_id='start_modelling'
+    )
+
+    prep_iceberg >> start_extract
+    start_extract >> [run_extract_game, run_extract_review] >> done_extract >> start_transform
+    start_transform >> [run_clean_review, run_clean_game] >> start_modelling >> [run_thrift, wait_thrift]
+    wait_thrift >> run_dbt_modelling >> done_transform

@@ -8,13 +8,14 @@ RUN apt-get install -y \
     python3 \
     python3-pip \
     tar \
+    netcat \
     nano
 
 RUN apt-get clean
 
 ENV SPARK_VERSION=3.4.1
 ENV HADOOP_VERSION=3
-ENV SPARK_HOME=/opt/spark 
+ENV SPARK_HOME=/opt/spark
 ENV PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
 
 # Download and extract Apache Spark
