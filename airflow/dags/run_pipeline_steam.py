@@ -16,10 +16,16 @@ with DAG(
     tags=['docker', 'steam', 'spark'],
 ) as dag:
 
+
     # today = date.today().strftime("%Y-%m-%d")
     start_day = '2010-10-15'
     end_day = '2010-10-15'
     today = '2010-10-15'
+    
+    download_dependencies = BashOperator(
+        task_id='download_dependencies',
+        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/dependences/download_packages.sh '
+    ) 
     run_extract_review = BashOperator(
         task_id='run_extract_review',
         bash_command=f'docker exec spark_steam-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_review.sh {today} '
@@ -36,11 +42,9 @@ with DAG(
         task_id='run_clean_game',
         bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/silver_script/run_clean_games.sh '
     )
-
-    test_wget = BashOperator(
-        task_id='test_wget',
-        bash_command='docker exec spark_steam-spark-master-1 wget https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.0.0/delta-spark_2.12-3.0.0.jar '
-    )
-
+    extract_tasks = [run_extract_review, run_extract_game]
+    clean_tasks = [run_clean_review, run_clean_game]
+    
+    download_dependencies >> extract_tasks
     run_extract_review >> run_clean_review
     run_extract_game >> run_clean_game
