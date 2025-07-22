@@ -4,8 +4,7 @@ SELECT 'Running init.sql...';
 
 USE lakehouse_metadata;
 
--- ==========================
--- 1. BRONZE_METADATA TABLE
+1. BRONZE_METADATA TABLE
 -- ==========================
 CREATE TABLE bronze_metadata (
     batch_id      VARCHAR(50) PRIMARY KEY,
@@ -41,3 +40,5 @@ CREATE TABLE gold_metadata (
     table_type       VARCHAR(50),
     FOREIGN KEY (silver_batch_id) REFERENCES silver_metadata(batch_id)
 );
+-- ==========================
+-- 
