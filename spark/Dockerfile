@@ -25,7 +25,7 @@ RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SP
     rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
 
 # Install PySpark
-RUN pip3 install pyspark==${SPARK_VERSION}
+RUN pip3 install pyspark==${SPARK_VERSION} requests
 
 # Set working directory
 WORKDIR $SPARK_HOME

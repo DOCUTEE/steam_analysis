@@ -155,6 +155,7 @@ services:
 
   airflow-init:
     <<: *airflow-common
+    hostname: airflow-init
     command: >
       bash -c "
         airflow db upgrade &&
@@ -163,6 +164,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
+    hostname: airflow-webserver
     ports:
       - 8081:8080
     command: webserver
@@ -172,6 +174,7 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
+    hostname: airflow-scheduler
     command: scheduler
     depends_on:
       airflow-init:
