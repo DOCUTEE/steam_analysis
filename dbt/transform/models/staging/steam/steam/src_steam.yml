@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: steam
+    description: "Source data from Steam, including reviews, games"
+    schema: bronze
+    tables:
+      - name: reviews
+        description: "Steam reviews data"
+        identifier: steam_reviews
+      - name: games
+        description: "Steam games data"
+        identifier: games

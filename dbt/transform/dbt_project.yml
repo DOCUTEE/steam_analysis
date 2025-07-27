@@ -28,7 +28,13 @@ clean-targets: # directories to be removed by `dbt clean`
 # directory as views. These settings can be overridden in the individual model
 # files using the `{{ config(...) }}` macro.
 models:
-  +file_format: iceberg # ⚠️ Đây là điểm quan trọng
   transform:
-    +materialized: incremental
-    +incremental_strategy: append
+    +file_format: iceberg
+    staging:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +schema: silver
+    marts:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +schema: gold

@@ -5,5 +5,5 @@ transform:
       host: spark-master
       method: thrift
       port: 10000
-      schema: gold
+      schema: dev
   target: dev

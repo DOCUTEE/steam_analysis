@@ -1,0 +1,8 @@
+version: 2
+
+models: 
+  - name: stg_steam__reviews
+    description: "Staging model for Steam reviews data"
+
+  - name: stg_steam__games
+    description: "Staging model for Steam games data"

@@ -5,7 +5,7 @@
 with deduplicated as (
     select
         distinct language
-    from {{ source('silver', 'steam_reviews') }}
+    from {{ ref('stg_steam__reviews') }}
 )
 
 select
