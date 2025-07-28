@@ -43,9 +43,9 @@ reviews_enriched as (
         r.author_playtime_last_two_weeks,
         r.steam_purchase
     FROM stg_steam__reviews r
-    LEFT JOIN dim_user u ON r.author_steamid = u.user_id
-    LEFT JOIN dim_language l ON r.language = l.language
-    LEFT JOIN dim_game g ON r.appid = g.game_key
+    JOIN dim_user u ON r.author_steamid = u.user_id
+    JOIN dim_language l ON r.language = l.language
+    JOIN dim_game g ON r.appid = g.game_key
 ),
 added_surrogate_key AS (
     SELECT
