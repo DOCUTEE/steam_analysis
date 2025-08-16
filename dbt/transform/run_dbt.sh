@@ -16,7 +16,7 @@ cd /dbt/transform || exit 1
 
 # Xây dựng câu lệnh dbt
 if [ "$FULL_REFRESH" -eq 1 ]; then
-  dbt run --full-refresh  --vars  "{\"batch_start\": \"$START_DATE\"}"
+  dbt run --full-refresh  --vars  "{\"review_day\": \"$START_DATE\"}"
 else
-  dbt run  --vars  "{\"batch_start\": \"$START_DATE\"}"
+  dbt run  --vars  "{\"review_day\": \"$START_DATE\"}"
 fi

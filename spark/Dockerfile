@@ -27,7 +27,21 @@ RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SP
 # Install PySpark
 RUN pip3 install pyspark==${SPARK_VERSION}
 
+RUN apt-get update && apt-get install -y openssh-server
+
+RUN mkdir -p /var/run/sshd
+
+RUN useradd -m airflow_user && echo "airflow_user:airflow" | chpasswd
+
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+ENV JAVA_HOME=/usr/local/openjdk-8
+
+EXPOSE 22
+
 # Set working directory
 WORKDIR $SPARK_HOME
 
 COPY ./conf/spark-defaults.conf $SPARK_HOME/conf/spark-defaults.conf
+COPY ./conf/spark-env.sh $SPARK_HOME/conf/spark-env.sh

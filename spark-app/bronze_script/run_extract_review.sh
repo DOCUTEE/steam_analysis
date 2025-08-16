@@ -1,3 +1,4 @@
+
 spark-submit --jars $(echo /opt/spark/jars/*.jar | tr ' ' ',') \
             --master spark://spark-master:7077 \
             --deploy-mode client \

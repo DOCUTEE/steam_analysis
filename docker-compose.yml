@@ -12,11 +12,13 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: "X5uLmpuVDfYEm1LXYGxR8UwHAPEVIXKo5A98O4yU8lY="  # optional but good to define
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW_CONN_SSH_SPARK_MASTER: ssh://airflow_user:airflow@spark-master:22
+    AIRFLOW_CONN_SSH_DBT: ssh://airflow_user:airflow@dbt:22
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/plugins:/opt/airflow/plugins
-    - /var/run/docker.sock:/var/run/docker.sock  # allows running host docker
+    # - /var/run/docker.sock:/var/run/docker.sock  # allows running host docker
   depends_on:
     postgres:
       condition: service_healthy
@@ -138,7 +140,7 @@ services:
       - spark-master
       - hive-metastore
       - mysql
-    entrypoint: ["sleep", "infinity"]  # Khi chạy sẽ giữ container chạy
+    command: ["/bin/bash", "/dbt/setup_dbt.sh"]
   
   postgres:
     image: postgres:13

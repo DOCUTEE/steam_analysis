@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Start SSHD
+service ssh start
+
 # This script starts a Spark master
 $SPARK_HOME/sbin/start-master.sh 
 

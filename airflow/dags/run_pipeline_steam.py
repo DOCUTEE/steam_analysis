@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.providers.ssh.operators.ssh import SSHOperator
 from datetime import datetime, date
 
 default_args = {
@@ -27,45 +28,45 @@ with DAG(
     start_transform = EmptyOperator(task_id='start_transform')
     done_transform = EmptyOperator(task_id='done_transform')
     
-    download_dependencies = BashOperator(
+    download_dependencies = SSHOperator(
         task_id='download_dependencies',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/dependences/download_packages.sh '
-    ) 
-    run_extract_review = BashOperator(
+        ssh_conn_id='ssh_spark_master',
+        command='/opt/spark-app/dependences/download_packages.sh ',
+        do_xcom_push=True
+    )
+    run_extract_review = SSHOperator(
         task_id='run_extract_review',
-        bash_command=f'docker exec spark_steam-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_review.sh {today} '
+        ssh_conn_id='ssh_spark_master',
+        command=f'/opt/spark-app/bronze_script/run_extract_review.sh {today} ',
+        do_xcom_push=False
     )
-    run_extract_game = BashOperator(
+    run_extract_game = SSHOperator(
         task_id='run_extract_game',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/bronze_script/run_extract_game.sh '
+        ssh_conn_id='ssh_spark_master',
+        command='/opt/spark-app/bronze_script/run_extract_game.sh ',
+        do_xcom_push=False
     )
-    run_clean_review = BashOperator(
-        task_id='run_clean_review',
-        bash_command=f'docker exec spark_steam-spark-master-1 bash /opt/spark-app/silver_script/run_clean_reviews.sh {today} '
-    )
-    run_clean_game = BashOperator(
-        task_id='run_clean_game',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/silver_script/run_clean_games.sh '
-    )
-    run_dbt_modelling = BashOperator(
+    run_dbt_modelling = SSHOperator(
         task_id='run_dbt_modelling',
-        bash_command=f'docker exec spark_steam-dbt-1 bash /dbt/transform/run_dbt.sh {today} '
+        ssh_conn_id='ssh_dbt',
+        command=f'/dbt/transform/run_dbt.sh {today} ',
+        do_xcom_push=False
     )
 
-    run_thrift = BashOperator(
+    run_thrift = SSHOperator(
         task_id='run_thrift',
-        bash_command='docker exec spark_steam-spark-master-1 bash /opt/spark-app/gold_script/run_thrift.sh '
+        ssh_conn_id='ssh_spark_master',
+        command='/opt/spark-app/gold_script/run_thrift.sh ',
+        do_xcom_push=False
     )
 
-    wait_thrift = BashOperator(
+    wait_thrift = SSHOperator(
         task_id='wait_thrift',
-        bash_command='docker exec spark_steam-spark-master-1 bash -c "until nc -z localhost 10000; do sleep 2; done"'
-    )
-
-    start_modelling = EmptyOperator(
-        task_id='start_modelling'
+        ssh_conn_id='ssh_spark_master',
+        command='bash -c "until nc -z localhost 10000; do sleep 2; done" ',
+        do_xcom_push=False
     )
     download_dependencies >> start_extract
     start_extract >> [run_extract_game, run_extract_review] >> done_extract >> start_transform
-    start_transform >> [run_clean_review, run_clean_game] >> start_modelling >> [run_thrift, wait_thrift]
+    start_transform >> [run_thrift, wait_thrift]
     wait_thrift >> run_dbt_modelling >> done_transform
