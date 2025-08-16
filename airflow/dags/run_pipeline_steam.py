@@ -9,6 +9,9 @@ default_args = {
     'start_date': datetime(2024, 1, 1),
 }
 
+def with_login(command: str) -> str:
+    return f'bash --login -c "{command}"'
+
 with DAG(
     dag_id='run_pipeline_steam',
     default_args=default_args,
@@ -31,40 +34,52 @@ with DAG(
     download_dependencies = SSHOperator(
         task_id='download_dependencies',
         ssh_conn_id='ssh_spark_master',
-        command='/opt/spark-app/dependences/download_packages.sh ',
-        do_xcom_push=True
+        command=with_login('/opt/spark-app/dependences/download_packages.sh '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
     run_extract_review = SSHOperator(
         task_id='run_extract_review',
         ssh_conn_id='ssh_spark_master',
-        command=f'/opt/spark-app/bronze_script/run_extract_review.sh {today} ',
-        do_xcom_push=False
+        command=with_login(f'/opt/spark-app/bronze_script/run_extract_review.sh {today} '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
     run_extract_game = SSHOperator(
         task_id='run_extract_game',
         ssh_conn_id='ssh_spark_master',
-        command='/opt/spark-app/bronze_script/run_extract_game.sh ',
-        do_xcom_push=False
+        command=with_login('/opt/spark-app/bronze_script/run_extract_game.sh '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
     run_dbt_modelling = SSHOperator(
         task_id='run_dbt_modelling',
         ssh_conn_id='ssh_dbt',
-        command=f'/dbt/transform/run_dbt.sh {today} ',
-        do_xcom_push=False
+        command=with_login(f'/dbt/transform/run_dbt.sh {today} '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
 
     run_thrift = SSHOperator(
         task_id='run_thrift',
         ssh_conn_id='ssh_spark_master',
-        command='/opt/spark-app/gold_script/run_thrift.sh ',
-        do_xcom_push=False
+        command=with_login('/opt/spark-app/gold_script/run_thrift.sh '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
 
     wait_thrift = SSHOperator(
         task_id='wait_thrift',
         ssh_conn_id='ssh_spark_master',
-        command='bash -c "until nc -z localhost 10000; do sleep 2; done" ',
-        do_xcom_push=False
+        command=with_login('until nc -z localhost 10000; do sleep 2; done '),
+        do_xcom_push=True,
+        cmd_timeout=600, 
+        conn_timeout=60  
     )
     download_dependencies >> start_extract
     start_extract >> [run_extract_game, run_extract_review] >> done_extract >> start_transform

@@ -12,8 +12,8 @@ x-airflow-common:
     AIRFLOW__CORE__FERNET_KEY: "X5uLmpuVDfYEm1LXYGxR8UwHAPEVIXKo5A98O4yU8lY="  # optional but good to define
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    AIRFLOW_CONN_SSH_SPARK_MASTER: ssh://airflow_user:airflow@spark-master:22
-    AIRFLOW_CONN_SSH_DBT: ssh://airflow_user:airflow@dbt:22
+    AIRFLOW_CONN_SSH_SPARK_MASTER: ssh://root:root@spark-master:22
+    AIRFLOW_CONN_SSH_DBT: ssh://root:root@dbt:22
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs

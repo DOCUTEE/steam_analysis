@@ -31,11 +31,11 @@ RUN apt-get update && apt-get install -y openssh-server
 
 RUN mkdir -p /var/run/sshd
 
-RUN useradd -m airflow_user && echo "airflow_user:airflow" | chpasswd
+# Set root password
+RUN echo "root:root" | chpasswd
 
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-
 ENV JAVA_HOME=/usr/local/openjdk-8
 
 EXPOSE 22
@@ -45,3 +45,6 @@ WORKDIR $SPARK_HOME
 
 COPY ./conf/spark-defaults.conf $SPARK_HOME/conf/spark-defaults.conf
 COPY ./conf/spark-env.sh $SPARK_HOME/conf/spark-env.sh
+COPY init_env.sh /etc/profile.d/init_env.sh
+
+RUN chmod +x /etc/profile.d/init_env.sh

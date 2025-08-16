@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y openssh-server
 
 RUN mkdir -p /var/run/sshd
 
-RUN useradd -m airflow_user && echo "airflow_user:airflow" | chpasswd
+# Set root password
+RUN echo "root:root" | chpasswd
 
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
